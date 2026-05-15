@@ -1,0 +1,50 @@
+Vagrant.configure("2") do |config|
+    # Distrib stable et legere
+    config.vm.box = "debian/bookworm64"
+
+    #Machine 1 : Serveur 
+    config.vm.define "zmogneS" do |server|
+        server.vm.hostname = "zmogneS"
+        server.vm.network "private_network", ip: "192.168.56.110"
+        server.vm.provider "virtualbox" do |vb|
+            vb.memory = "2048"
+            vb.cpus = 2
+            vb.name = "zmogneS"
+        end
+        server.vm.provision "shell", inline: <<-SHELL
+        apt-get update -y
+        apt-get install -y curl
+        
+        curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--bind-address=192.168.56.110 --advertise-address=192.168.56.110 --node-ip=192.168.56.110" sh -
+        while [ ! -f /var/lib/rancher/k3s/server/node-token ]; do
+            sleep 2
+        done
+        cp /var/lib/rancher/k3s/server/node-token /vagrant/node-token
+    SHELL
+end
+
+    #Machine 2
+    config.vm.define "zmogneSW" do |worker|
+        worker.vm.hostname = "zmogneSW"
+        worker.vm.network "private_network", ip: "192.168.56.111"
+        worker.vm.provider "virtualbox" do |vb|
+            vb.memory = "2048"
+            vb.cpus = 2
+            vb.name = "zmogneSW"
+        end
+        worker.vm.provision "shell", inline: <<-SHELL
+            apt-get update -y 
+            apt-get install -y curl
+            # Attend que le token soit disponible
+            while [ ! -f /vagrant/node-token ]; do
+                echo "En attente du token du server..."
+                sleep 5
+            done
+            echo "Attente de la disponibilité de l'API K3s sur le serveur (port 6443)..."
+            while ! curl -sk https://192.168.56.110:6443/ > /dev/null; do
+                sleep 2
+            done
+            curl -sfL https://get.k3s.io | K3S_URL=https://192.168.56.110:6443 K3S_TOKEN=$(cat /vagrant/node-token) INSTALL_K3S_EXEC="--node-ip=192.168.56.111" sh -
+        SHELL
+    end
+end
