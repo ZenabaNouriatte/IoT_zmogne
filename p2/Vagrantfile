@@ -1,0 +1,27 @@
+Vagrant.configure("2") do |config|
+    # Distrib stable et legere
+    config.vm.box = "debian/bookworm64"
+
+    #Serveur 
+    config.vm.define "zmogneS" do |server|
+        server.vm.hostname = "zmogneS"
+        server.vm.network "private_network", ip: "192.168.56.110"
+        server.vm.provider "virtualbox" do |vb|
+            vb.memory = "2048"
+            vb.cpus = 2
+            vb.name = "zmogneS"
+        end
+        server.vm.provision "shell", inline: <<-SHELL
+        apt-get update -y
+        apt-get install -y curl iproute2 net-tools
+      
+        curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--bind-address=192.168.56.110 --advertise-address=192.168.56.110 --node-ip=192.168.56.110" sh -
+        # Attendre que K3s soit prêt
+        while ! kubectl get nodes 2>/dev/null | grep -q Ready; do sleep 2; done
+        kubectl apply -f /vagrant/confs/deployment.yaml
+        kubectl apply -f /vagrant/confs/services.yaml
+        sleep 30
+        kubectl apply -f /vagrant/confs/ingress.yaml
+    SHELL
+end
+end
