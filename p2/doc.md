@@ -6,6 +6,15 @@ Le routage via le header HTTP Host :
 - Tout autre host -> app3 (default)
 - app2 a 3 replicas
 
+Image Docker --> tourne dans un Pod --> exposé par un Service --> routé par l'Ingress
+Et l'Ingress c'est comme un receptionniste :
+
+"Tu veux app1.com ? Va au bureau 1 (Service app1)"
+"Tu veux app2.com ? Va au bureau 2 (Service app2)"
+"Tu ne sais pas où aller ? Va au bureau par defaut (Service app3)"
+
+Le tout sur la meme IP 192.168.56.110, c'est le header Host qui fait toute la difference.
+
 ## Concepts cles
 
 **Pod** : unite de base, contient le conteneur Docker
