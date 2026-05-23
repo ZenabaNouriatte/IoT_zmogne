@@ -37,11 +37,13 @@ es fichiers YAML sont appliques automatiquement via la provision
 
 - Pour automatiser le lancement des pods mais probleme avec ingress qui se lancait trop tot donc ajout dún sleep pour laisser le temps a traefik de se demarrer  
   
-``` while ! kubectl get nodes 2>/dev/null | grep -q Ready; do sleep 2; done
+``` bash
+while ! kubectl get nodes 2>/dev/null | grep -q Ready; do sleep 2; done
     kubectl apply -f /vagrant/confs/deployment.yaml
     kubectl apply -f /vagrant/confs/services.yaml
     sleep 30
-    kubectl apply -f /vagrant/confs/ingress.yaml``` 
+    kubectl apply -f /vagrant/confs/ingress.yaml
+``` 
 
 
 
@@ -54,41 +56,63 @@ Commandes utiles
 
 - Si modification Vagrantfile supp la conf du server zmogneS et la relancer
 
-```VBoxManage controlvm "zmogneS" poweroff   
+```bash
+VBoxManage controlvm "zmogneS" poweroff   
 VBoxManage unregistervm "zmogneS" --delete
 vagrant destroy -f                        
 vagrant up
+```
 
 - Connexion server 
-    vagrant ssh zmogneS
+    `vagrant ssh zmogneS`
 
 - Verifier si tout est ok 
 
-    sudo kubectl get all
+    `sudo kubectl get all`
 
 - Tester si les pods sont ok et app tournent
-
+```bash
 curl -H "Host:app1.com" 192.168.56.110
 curl -H "Host:app2.com" 192.168.56.110
 curl -H "Host:nimportequoi.com" 192.168.56.110
+```
 
 - Log traefik : 
-sudo kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
+`sudo kubectl logs -n kube-system -l app.kubernetes.io/name=traefik`
 
 
 - verifier endpoints dún service 
-sudo kubectl get endpoints app1-svc
+`sudo kubectl get endpoints app1-svc`
 
 - Pour tester sur navigateur  ajouter sur la machine host dans etc/hosts
+```bash
 192.168.56.110 app1.com
-192.168.56.110 app2.com``` (app3 pas besoin car default)
+192.168.56.110 app2.com
+``` 
+(app3 pas besoin car default)
+
+Dans le navigateur :
+
+http://app1.com
+
+http://app2.com
+
+http://192.168.56.110 
+
+
+
 
 - Supprimer ancien pod
-sudo kubectl delete -f /vagrant/confs/
+`sudo kubectl delete -f /vagrant/confs/`
 
 - Appliquer 
-sudo kubectl apply -f /vagrant/confs/
+`sudo kubectl apply -f /vagrant/confs/`
 
 - Surveiller les pods en temps reels 
 
-sudo kubectl get pods -w
+`sudo kubectl get pods -w`
+
+Voir ingress
+`sudo kubectl get ingress`
+
+`sudo kubectl describe ingress ingress`
