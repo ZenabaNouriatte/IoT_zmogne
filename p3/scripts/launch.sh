@@ -26,7 +26,7 @@ kubectl wait --for=condition=ready pod --all -n argocd --timeout=300s
 kubectl get pods -n argocd
 
 echo "==== CHANGE ARGO CD INTERVAL ====="
-kubectl patch configmap argocd-cm -n argocd --type merge -p '{"data": {"timeout.reconciliation": "30s"}}'
+kubectl patch configmap argocd-cm -n argocd --type merge -p '{"data": {"timeout.reconciliation": "10s"}}'
 kubectl rollout restart deployment argocd-repo-server -n argocd
 kubectl rollout status deployment argocd-repo-server -n argocd 
 
