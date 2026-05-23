@@ -17,6 +17,7 @@ kubectl create namespace dev
 # Installation d'Argo CD dans le namespace argocd
 echo "====  ARGO CD INSTALL ====="
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -f confs/appli.yaml
 
 #  Verifier aue les pods argocd sont en running
 kubectl get pods -n argocd
@@ -28,3 +29,4 @@ kubectl get pods -n argocd
 echo "==== CHANGE ARGO CD INTERVAL ====="
 kubectl patch configmap argocd-cm -n argocd --type merge -p '{"data": {"timeout.reconciliation": "30s"}}'
 kubectl rollout restart deployment argocd-repo-server -n argocd
+
