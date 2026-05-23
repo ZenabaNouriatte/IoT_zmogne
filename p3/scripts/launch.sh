@@ -28,6 +28,7 @@ kubectl get pods -n argocd
 echo "==== CHANGE ARGO CD INTERVAL ====="
 kubectl patch configmap argocd-cm -n argocd --type merge -p '{"data": {"timeout.reconciliation": "30s"}}'
 kubectl rollout restart deployment argocd-repo-server -n argocd
+kubectl rollout status deployment argocd-repo-server -n argocd 
 
 echo "==== DEPLOY APP ====="
 kubectl apply -f confs/appli.yaml   
