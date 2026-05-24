@@ -47,12 +47,28 @@ helm upgrade --install gitlab gitlab/gitlab \
   --version 9.11.4 \
   --set global.hosts.domain=localhost \
   --set global.hosts.externalIP=127.0.0.1 \
+  --set global.hosts.https=false \
   --set certmanager-issuer.email=test@test.com \
   --set global.edition=ce \
   --set gitlab-runner.install=false \
   --set prometheus.install=false \
   --set registry.enabled=false \
+  --set nginx-ingress.enabled=false \
+  --set global.ingress.enabled=false \
   --timeout 600s
+
+echo "==== GITLAB ACCESS ====="
+kubectl wait --for=condition=ready pod \
+  -l app=webservice \
+  -n gitlab \
+  --timeout=600s \
+  --field-selector=status.phase=Running 2>/dev/null || true
+echo "GitLab user : root | password:"
+kubectl get secret gitlab-gitlab-initial-root-password -n gitlab \
+  -o jsonpath="{.data.password}" | base64 -d
+echo ""
+kubectl port-forward svc/gitlab-webservice-default -n gitlab 8181:8181 &
+echo " Voir : http://localhost:8181 "
 
 echo "==== DEPLOY APP ====="
 kubectl apply -f confs/appli.yaml   

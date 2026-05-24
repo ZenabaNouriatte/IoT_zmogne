@@ -8,44 +8,63 @@ Sans Helm : creer et maintenir plusieurs fichiers yaml . Avec : un seul fichier
 
 Sujet 
 1. Demande un namespace gitlab : mis dans launch.sh + ajout de línstallation de helm dans install.sh 
-2. Installationd de gitlab via helm : `https://docs.gitlab.com/charts/installation/deployment/`
+2. Installation de gitlab via helm : `https://docs.gitlab.com/charts/installation/deployment/`
    
 Probleme rencontree : 
 
-1. Rate limit Docker Hub
+- Rate limit Docker Hub
 Problème : les pods Argo CD restaient en ContainerCreating pendant 5 minutes
 
 Solution : connexion à Docker Hub avec docker login + création d'un secret regcred dans le namespace gitlab
 
-2. Images bitnami introuvables sur Docker Hub
+- Images bitnami introuvables sur Docker Hub
 Problème : docker.io/bitnami/postgresql:14.8.0 not found
 Cause : Bitnami a migré ses images depuis Docker Hub
 Tentatives : versions 7.11.0 et 8.0.0 du chart → même erreur
 
 Solution : version 9.11.4 qui utilise bitnamilegacy/ au lieu de bitnami/
 
-3. Flag --set global.imagePullSecrets[0]=regcred invalide
+- Flag --set global.imagePullSecrets[0]=regcred invalide
 Problème : erreur cannot unmarshal string into Go struct field
 
 Solution : retirer ce flag, patcher le serviceaccount default manuellement
 
-4. Pod sidekiq Pending
+- Pod sidekiq Pending
 Problème : Insufficient memory
 Cause : GitLab consomme beaucoup de RAM, pas assez pour deux pods sidekiq simultanément
 
 Solution : non bloquant, GitLab fonctionne quand même
 
-5. Erreur cannot re-use a name that is still in use
+- Erreur cannot re-use a name that is still in use
 Problème : Helm essayait de réinstaller GitLab alors qu'une installation était encore en cours
 Solution : ajout de helm uninstall gitlab -n gitlab dans la cible clean du Makefile avec - devant pour ignorer l'erreur si GitLab n'existe pas
 
-6. source .env pour les credentials Docker Hub
+- source .env pour les credentials Docker Hub
 Problème : mot de passe Docker Hub ne devait pas être en clair dans le script
 
 Solution : fichier .env chargé au début de launch.sh + ajout de .env dans .gitignore
 
+3. Accéder à GitLab et récupérer le mot de passe
 
+https://docs.gitlab.com/charts/installation/deployment.html#initial-login
 
+Probleme rencontree : 
+
+- Erreur 422 : The change you requested was rejected
+Cause : GitLab génère des tokens de sécurité CSRF basés sur son domaine configuré. Le port-forward crée une discordance entre le domaine attendu et l'URL utilisée.
+Tentatives :
+
+Changement de port → même erreur
+Navigation privée → même erreur
+Patch du configmap gitlab-gitlab-shell → même erreur
+
+Solution : Ajouter les flags suivants dans la commande Helm 
+
+- Invalid login or password
+Cause : Après un make re le cluster est recréé from scratch, donc le mot de passe initial est régénéré automatiquement par GitLab.
+Solution : Toujours récupérer le mot de passe dans launch.sh
+
+- 
 
 Logique d'installation
 ```bash
