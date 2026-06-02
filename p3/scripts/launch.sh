@@ -31,4 +31,4 @@ kubectl rollout restart deployment argocd-repo-server -n argocd
 kubectl rollout status deployment argocd-repo-server -n argocd 
 
 echo "==== DEPLOY APP ====="
-kubectl apply -f confs/appli.yaml   
+kubectl apply -f appli.yaml   
